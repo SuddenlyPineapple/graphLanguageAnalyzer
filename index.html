@@ -150,6 +150,7 @@
                 //--- Cleaning Data
                 text = text.replace(/[&\/\\#,+()$~%.'":|!@;*?<>{}]/g, '').toLowerCase()
                 text = text.replace(/\ {2,}/g, " ")
+                text = text.replace(/\n/g, " ")
 
                 var data = text.split(" ");
                 data.forEach(function (word, index, arr) {
