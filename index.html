@@ -1,0 +1,340 @@
+<!DOCUMENT html>
+<html>
+
+<head>
+    <meta charse="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Graph Language Analyzer - Wojciech Kasperski</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <div class="container">
+                <h1 class="display-3">Graph Language Analyzer</h1>
+                <p class="lead">Developed by Wojciech Kasperski <a href="mailto:wojciech.kaserski97@gmail.com">&lt;wojciech.kasperski97@gmail.com&gt;</a></p>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <form id="analyzingText">
+                    <div class="form-group">
+                        <label for="toAnalyze">Enter language text for analyze below</label>
+                        <textarea class="form-control" id="toAnalyze" rows="4"></textarea>
+                        <button id="analyzeIt" class="btn btn-dark m-2">Click to Analyze!</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-12">
+                <div id="cy"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="assets/js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="assets/js/cytoscape.min.js"></script>
+
+    <script sync>
+        function onlyUnique(value, index, self) {
+            return self.indexOf(value) === index;
+        }
+
+        $(function () {
+            console.log("Działa!");
+            var cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: [
+                    //Nodes
+                    {
+                        data: {
+                            id: 'a',
+                            tag: 'a'
+                        }
+                    },
+                    {
+                        data: {
+                            id: 'b',
+                            tag: 'b'
+                        }
+                    },
+                    {
+                        //Edges
+                        data: {
+                            id: 'ab',
+                            source: 'a',
+                            target: 'b',
+                            tag: 'ab'
+                        }
+                    }
+                ],
+                style: [{
+                    selector: 'node',
+                    style: {
+                        shape: 'ellipse',
+                        'background-color': 'grey',
+                        label: 'data(tag)'
+                    }
+                }, {
+                    selector: 'edge',
+                    style: {
+                        'label': 'data(tag)', // maps to data.label
+                        'line-color': 'aqua',
+                        'target-arrow-shape': 'triangle',
+                        'target-arrow-color': 'aqua',
+                        'curve-style': 'bezier'
+                    }
+                }, {
+                    selector: "node[l_index = 0]",
+                    style: {
+                        shape: 'hexagon',
+                        'background-color': 'red',
+                        label: 'data(tag)'
+                    }
+                }, {
+                    selector: "node[end = 1]",
+                    style: {
+                        shape: 'tag',
+                        'background-color': 'blue',
+                        label: 'data(tag)'
+                    }
+                }, {
+                    selector: 'node[id = "start"]',
+                    style: {
+                        shape: 'star',
+                        'background-color': 'green',
+                        label: 'data(tag)'
+                    }
+                }, ]
+            });
+
+            for (var i = 0; i < 10; i++) {
+                cy.add({
+                    data: {
+                        id: 'node' + i,
+                        tag: 'n' + i,
+                    }
+                });
+                var source = 'node' + i;
+                cy.add({
+                    data: {
+                        id: 'edge' + i,
+                        tag: 'e' + i,
+                        source: source,
+                        target: (i % 2 == 0 ? 'a' : 'b')
+                    }
+                });
+            }
+
+            cy.layout({
+                name: 'cose'
+                //name: 'circle'
+            }).run();
+
+            $("form").submit(function (e) {
+                e.preventDefault();
+            });
+
+            $("#analyzeIt").on("click", function () {
+                var text = $("#toAnalyze").val()
+                var data = new Array()
+                //console.log(text)
+
+                //--- Cleaning Data
+                text = text.replace(/[&\/\\#,+()$~%.'":|!@;*?<>{}]/g, '').toLowerCase()
+                text = text.replace(/\ {2,}/g, " ")
+
+                var data = text.split(" ");
+                data.forEach(function (word, index, arr) {
+                    if (word === "" || word == " ")
+                        arr.splice(index, 1);
+                });
+
+                data = data.filter(onlyUnique);
+
+                data.forEach(function (word, index, arr) {
+                    arr[index] = word.split('')
+                });
+
+                console.log(data);
+
+                //--- Generate Graph
+
+                cy.elements().remove();
+
+                var previous = {
+                    letter: '$',
+                    l_index: '$',
+                    index: '$',
+                    check: false
+                };
+                var check = false;
+                var firstLetter = true;
+                var filtering_saves = new Array();
+
+                cy.add({
+                    group: 'nodes',
+                    data: {
+                        id: "start",
+                        tag: "start"
+                    }
+                })
+
+                data.forEach(function (word, index, arr) {
+                    previousRepeat = true;
+                    filtering_saves = new Array();
+
+                    word.forEach(function (letter, l_index, letters) {
+                        var filtered = cy.$('node[l_index = ' + l_index + '][tag = "' +
+                            letter + '"][start = "' + letters[0] + '"]')
+                        var filtering_saves_new = new Array();
+                        var end = new Boolean;
+                        //console.log("How long: " + letters.length + " " + l_index);
+                        l_index == letters.length - 1 ? end = 1 : end = 0;
+                        //console.log("END:" + end)
+
+
+                        if (filtered[0] != undefined && l_index != 0) {
+
+                            filtered.forEach(function (element, i, collected) {
+                                filtering_saves_new.push(element);
+                                //console.log(element.data('id') + " " + element.data('index'));
+                            });
+
+                            var same = new Array();
+                            for (var i = 0; i < filtering_saves.length; i++) {
+                                var item1 = filtering_saves[i],
+                                    found = false;
+                                for (var j = 0; j < filtering_saves_new.length && !found; j++) {
+                                    found = item1.data('index') === filtering_saves_new[
+                                        j].data('index');
+                                }
+                                if (found === true) { // isUnion is coerced to boolean
+                                    same.push(item1);
+                                    //TODO: Incrementować edge value
+                                }
+                            }
+
+                            //filtering_saves = same;
+
+                            // console.log("Same");
+                            // console.log(same);
+                            // console.log(filtering_saves_new)
+                            // console.log(filtering_saves)
+
+                            filtering_saves = filtering_saves_new;
+
+                        } else if (filtered[0] != undefined && l_index == 0) {
+                            filtered.forEach(function (element, i, collected) {
+                                filtering_saves_new.push(element);
+                            });
+                            filtering_saves = filtering_saves_new;
+                        } else {
+                            filtering_saves = [];
+                            previousRepeat = false;
+                        }
+
+                        if (check = filtered.length != cy.collection().length &&
+                            previousRepeat == true) {
+
+                            previous.letter = filtering_saves[0].data('tag')
+                            previous.l_index = filtering_saves[0].data('l_index')
+                            previous.index = filtering_saves[0].data('index')
+                            previous.check = check
+                            //console.log("Previous", previous)
+
+                            if (end == 1) filtering_saves[0].data('end') = 1;
+
+                            //TODO: Zmienić final poprzedniego noda, jesli trzeba
+
+
+                        } else {
+                            previousRepeat = false;
+                            cy.add({
+                                group: 'nodes',
+                                data: {
+                                    id: letter + '_' + index + '_' + l_index,
+                                    tag: letter,
+                                    l_index: l_index,
+                                    index: index,
+                                    left: previous.letter,
+                                    right: letter,
+                                    start: letters[0],
+                                    end: end
+                                }
+                            });
+                            if (l_index > 0) {
+                                console.log("Edge: ", previous, {
+                                    letter,
+                                    l_index,
+                                    index,
+                                    check
+                                })
+                                cy.add({
+                                    group: 'edges',
+                                    data: {
+                                        id: previous.letter + '_' + letter +
+                                            '_' + index + '_' + l_index,
+                                        left: previous.letter,
+                                        right: letter,
+                                        tag: 1,
+                                        source: previous.letter + '_' +
+                                            previous.index +
+                                            '_' + previous.l_index,
+                                        target: letter + '_' + index + '_' +
+                                            l_index,
+                                    }
+                                });
+                            } else if (l_index == 0) {
+                                cy.add({
+                                    group: 'edges',
+                                    data: {
+                                        id: letter + "_start",
+                                        left: "start",
+                                        right: letter,
+                                        tag: 1,
+                                        source: "start",
+                                        target: letter + '_' + index + '_' +
+                                            l_index,
+                                    }
+                                });
+                            }
+                            previous = {
+                                letter,
+                                l_index,
+                                index,
+                                check
+                            };
+                        }
+                        //previous = {letter, l_index, index, check};
+                        //console.log(previous)
+                        //console.log(check)
+                    });
+                });
+
+                cy.layout({
+                    name: 'cose'
+                }).run();
+
+
+
+                //cy.add();
+
+
+
+            });
+
+
+
+        });
+    </script>
+</body>
+
+</html>
