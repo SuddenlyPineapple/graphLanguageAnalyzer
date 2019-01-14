@@ -45,6 +45,7 @@
                         <label for="analyzeSylabsTextbox">Input just two chars to search for sylab:</label>
                         <textarea class="form-control" id="analyzeSylabsTextbox" rows="1"></textarea>
                         <button id="analyzeEnteredSylabs" class="btn btn-dark m-2">Click to search for sylabs!</button>
+                        <button id="analyzeEnteredSylabsSpecial" class="btn btn-dark m-2">Click to search for sylabs based on special chars (for ex. if you are using Morse Alphabet)!</button>
                     </div>
                 </form>
             </div>
@@ -387,6 +388,19 @@
                 var ref = $("#toAnalyze").val();
                 //--- Cleaning Data
                 ref = cleanInput(ref);
+                generateGraph(cy, ref);
+                //----------------------------------------END Refreshing to fecator
+
+                //--- Cleaning Data
+                searchFor = cleanInput(text);
+                searchSubGraphSylabs(cy, searchFor);
+            });
+
+            $("#analyzeEnteredSylabsSpecial").on("click", function () {
+                var text = $("#analyzeSylabsTextbox").val();
+                
+                //----------------------------------------START Refreshing to fecator
+                var ref = $("#toAnalyze").val();
                 generateGraph(cy, ref);
                 //----------------------------------------END Refreshing to fecator
 
