@@ -7,6 +7,10 @@
     <title>Graph Language Analyzer - Wojciech Kasperski</title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script type="text/javascript" src="assets/js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="assets/js/cytoscape.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cytoscape-cose-bilkent@4.0.0/cytoscape-cose-bilkent.min.js"></script>
 </head>
 
 <body>
@@ -61,10 +65,7 @@
         </div>
     </div>
 
-    <script type="text/javascript" src="assets/js/jquery-3.3.1.min.js"></script>
-    <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="assets/js/cytoscape.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cytoscape-cose-bilkent@4.0.0/cytoscape-cose-bilkent.min.js"></script>
+    
 
     <script sync>
         function onlyUnique(value, index, self) {
@@ -90,8 +91,6 @@
             data.forEach(function (word, index, arr) {
                 arr[index] = word.split('')
             });
-
-            //console.log(data);
 
             //--- Generate Graph
 
@@ -127,34 +126,14 @@
 
                     var filtering_saves_new = new Array();
                     var end = new Boolean;
-                    //console.log("How long: " + letters.length + " " + l_index);
                     l_index == letters.length - 1 ? end = 1 : end = 0;
-                    //console.log("END:" + end)
                     
                     //Checking if searched node exist and adding nodes to searched
                     if (filtered[0] != undefined && l_index != 0 && previousRepeat) {
 
                         filtered.forEach(function (element, i, collected) {
                             filtering_saves_new.push(element);
-                            //console.log(element.data('id') + " " + element.data('index'));
                         });
-
-                        // var same = new Array();
-                        // for (var i = 0; i < filtering_saves.length; i++) {
-                        //     var item1 = filtering_saves[i],
-                        //         found = false;
-                        //     for (var j = 0; j < filtering_saves_new.length && ! found; j++) {
-                        //         found = (item1.data('index') === filtering_saves_new[j].data('index') && item1.data('tag') === filtering_saves_new[j].data('left'));
-                        //     }   
-                        //     if (found === true) { // isUnion is coerced to boolean
-                        //         same.push(item1);
-                        //     }
-                        // }
-
-                        //filtering_saves = same;
-                        // console.log("Same");
-                        // console.log(same);
-                        //console.log("Data:" ,filtering_saves_new, filtering_saves)
 
                         //Edge value incrementation
                         var inc_edge = cy.edges('[id = "'+ 
@@ -169,7 +148,6 @@
                             inc_edge[0].data('tag', data_value+1);
                             
                         }
-                        //console.log(inc_edge);
 
                         filtering_saves = filtering_saves_new;
 
@@ -185,8 +163,6 @@
                         var data_value = inc_edge[0].data('tag');
                         inc_edge[0].data('tag', data_value+1);
                         
-                        //console.log(inc_edge);
-
                     } else {
                         filtering_saves = [];
                         previousRepeat = false;
@@ -200,7 +176,6 @@
                         previous.l_index = filtering_saves[0].data('l_index')
                         previous.index = filtering_saves[0].data('index')
                         previous.check = check
-                        //console.log("Previous", previous)
 
                         if (end == 1) filtering_saves[0].data('end', 1);
 
@@ -221,9 +196,6 @@
                             }
                         });
                         if (l_index > 0) {
-                            
-                            //console.log("Edge: ", previous, { letter, l_index, index, check })
-                            
                             cy.add({
                                 group: 'edges',
                                 data: {
@@ -242,7 +214,6 @@
                             });
                             
                         } else if (l_index == 0) {
-
                             cy.add({
                                 group: 'edges',
                                 data: {
@@ -265,12 +236,7 @@
             });
 
             cy.layout({
-                //name: 'cose'
                 name: 'cose-bilkent'
-                //name: 'grid'
-                //name: 'breadthfirst', avoidOverlap: true,
-                //name: 'concentric'
-                //name: 'random'
             }).run();
 
         }
@@ -278,23 +244,17 @@
         function searchSubGraphSylabs(cy, text){
             if(text.length > 0)
                 var serached = cy.nodes('[tag = "' + text[0] + '"]');
-                //console.log(serached);
                 serached.forEach( function(ele, i, eles){
                     second = ele.neighborhood('[tag = "' + text[1] + '"][left = "' + text[0] + '"][l_index = ' + (ele.data('l_index') + 1 )+ ']');
-                    //console.log(second);
                     if(second.length > 0){
                         second.forEach( function(ele1, i1, eles1){
-                            
                             console.log(ele, ele1);
 
-                            //Changing first and second element
                             ele.data('search', 1);
                             ele1.data('search', 1);
 
                             search_edge = ele.edgesWith(ele1);
                             search_edge.data('search', 1);
-
-                            //console.log(search_edge);
                         });
                     }
                 });
@@ -356,8 +316,6 @@
                 }]
             });
 
-            //cy.layout({name: 'cose'}).run();
-
             $("form").submit(function (e) {
                 e.preventDefault();
             });
@@ -368,10 +326,6 @@
                 //--- Cleaning Data
                 text = cleanInput(text);
                 generateGraph(cy, text);
-
-                //comment this - it's auto search for "sd"
-                //var searchFor = "sd";
-                //searchSubGraphSylabs(cy, searchFor);
             });
 
             $("#analyzeCrap").on("click", function () {
